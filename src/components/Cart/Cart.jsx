@@ -8,6 +8,8 @@ import classes from './Cart.module.css';
 const Cart = (props) => {
   const [isCheckout, setIsCheckout] = useState(false);
   const [didSubmit, setDidSubmit] = useState(false);
+  const [submittedItems, setSubmittedItems] = useState([]);
+  const [submittedTotal, setSubmittedTotal] = useState(0);
   const cartCtx = useContext(CartContext);
 
   const totalAmount = `$${cartCtx.totalAmount.toFixed(2)}`;
@@ -27,12 +29,14 @@ const Cart = (props) => {
 
   function submitOrderHandler(userData) {
     console.log('Order submitted:', userData, cartCtx.items);
+    setSubmittedItems(cartCtx.items);    
+    setSubmittedTotal(cartCtx.totalAmount); 
     setDidSubmit(true);
-    // A real backend call would go here — not covered up through this lesson.
   }
 
   const cartItems = (
     <ul className={classes['cart-items']}>
+      {cartCtx.items.length === 0 && <p>Your cart is empty!</p>}
       {cartCtx.items.map((item) => (
         <CartItem
           key={item.id}
@@ -71,11 +75,27 @@ const Cart = (props) => {
     </>
   );
 
+  function closeAfterOrderHandler() {   // ADD THIS FUNCTION
+    cartCtx.clearCart();
+    props.onClose();
+  }
+
   const didSubmitModalContent = (
     <>
       <p>Successfully sent the order!</p>
+      <ul className={classes['cart-items']}>
+        {submittedItems.map((item) => (
+          <li key={item.id}>
+            {item.name} — x{item.amount} (${(item.price * item.amount).toFixed(2)})
+          </li>
+        ))}
+      </ul>
+      <div className={classes.total}>
+        <span>Total Paid</span>
+        <span>${submittedTotal.toFixed(2)}</span>
+      </div>
       <div className={classes.actions}>
-        <button className={classes.button} onClick={props.onClose}>
+        <button className={classes.button} onClick={closeAfterOrderHandler}>
           Close
         </button>
       </div>
